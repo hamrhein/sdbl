@@ -93,25 +93,24 @@ class SdblSql:
 
         return aliases
 
-    def actions_query_gene(self, gene, cutoff_score):
+    def actions_query_gene(self, gene_name, cutoff_score):
         result = set()
-        aliases = self.get_aliases((gene,))
+        aliases = self.get_aliases((gene_name,))
 
         with SdblSqlCursor(self.dbh, aliases) as cur:
             cur.execute(ACTION_QRY, (cutoff_score,))
 
-            res = [(gene, r[1], r[2], r[3], r[4], r[5], r[6])
+            res = [(gene_name, r[1], r[2], r[3], r[4], r[5], r[6])
                     for r in cur.fetchall()]
 
         aliases = self.get_reverse_aliases([r[1] for r in res])
 
-        result = {(gene, aliases[r[1]], r[2], r[3], r[4], r[5], r[6]) for
+        result = {(gene_name, aliases[r[1]], r[2], r[3], r[4], r[5], r[6]) for
                 r in res if r[1] in aliases}
 
         return sorted(list(result))
 
     def actions_query_multiple_genes(self, gene_list, cutoff_score):
-        result = set()
         aliases = self.get_aliases(gene_list)
 
         with SdblSqlCursor(self.dbh, aliases) as cur:
@@ -122,18 +121,18 @@ class SdblSql:
 
         return sorted(res)
 
-    def evidence_query_gene(self, gene, cutoff_score):
-        aliases = self.get_aliases((gene,))
+    def evidence_query_gene(self, gene_name, cutoff_score):
+        aliases = self.get_aliases((gene_name,))
 
         with SdblSqlCursor(self.dbh, aliases) as cur:
             cur.execute(EVIDENCE_QRY, (cutoff_score,))
 
-            primary = [[gene] + list(r[1:9]) for r in self.cursor.fetchall()]
+            primary = [[gene_name] + list(r[1:10]) for r in cur.fetchall()]
 
         aliases = self.get_reverse_aliases([r[1] for r in primary])
 
         res = [(r[0], aliases[r[1]], z[0], z[1]) for r in primary
-                for z in zip(EVIDENCE_FRAME_COLS, r[2:9]) if z[1]]
+                for z in zip(EVIDENCE_FRAME_COLS, r[2:10]) if z[1]]
 
         return sorted(res)
 
@@ -143,11 +142,11 @@ class SdblSql:
         with SdblSqlCursor(self.dbh, aliases) as cur:
             cur.execute(EVIDENCE_QRY, (cutoff_score,))
 
-            primary = [[aliases[r[0]], aliases[r[1]]] + list(r[2:9]) for r in
+            primary = [[aliases[r[0]], aliases[r[1]]] + list(r[2:10]) for r in
                     cur.fetchall() if r[1] in aliases]
 
         res = [(r[0], r[1], z[0], z[1]) for r in primary
-                for z in zip(EVIDENCE_FRAME_COLS, r[2:9]) if z[1]]
+                for z in zip(EVIDENCE_FRAME_COLS, r[2:10]) if z[1]]
 
         return sorted(res)
 
